@@ -1,2 +1,3 @@
 # big-data
-labs
+
+ - lr1 (done on cluster) added
