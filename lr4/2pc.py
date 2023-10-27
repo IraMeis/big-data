@@ -2,6 +2,7 @@ import threading
 from time import sleep
 from kazoo.client import KazooClient
 import random
+from datetime import datetime
 
 commit = b'commit'
 abort = b'abort'
@@ -55,24 +56,29 @@ class Master(threading.Thread):
         zk = KazooClient()
         zk.start()
         zk.ensure_path(self.node_home)
+        then = datetime.now()
+        is_solved = [False]
 
         @zk.ChildrenWatch(self.node_home)
         def workers_watch(workers):
-            if len(workers) == self.n_workers:
-                print("All workers voted")
-                workers = zk.get_children(self.node_home)
-                commits, aborts = 0, 0
+            if not is_solved[0]:
+                if len(workers) == self.n_workers or (datetime.now() - then).total_seconds() > 30:
+                    print("All workers voted")
+                    workers = zk.get_children(self.node_home)
+                    commits, aborts = 0, 0
 
-                for w in workers:
-                    commits += int(zk.get(f"{self.node_home}/{w}")[0] == commit)
-                    aborts += int(zk.get(f"{self.node_home}/{w}")[0] == abort)
+                    for w in workers:
+                        commits += int(zk.get(f"{self.node_home}/{w}")[0] == commit)
+                        aborts += int(zk.get(f"{self.node_home}/{w}")[0] == abort)
 
-                decision = self.strategies[1](commits, aborts)
+                    decision = self.strategies[1](commits, aborts)
 
-                for w in workers:
-                    zk.set(f"{self.node_home}/{w}", decision)
-            else:
-                print(f"register nodes {workers}")
+                    for w in workers:
+                        zk.set(f"{self.node_home}/{w}", decision)
+
+                    is_solved[0] = True
+                else:
+                    print(f"register nodes {workers}")
 
         sleep(30)
         zk.delete(self.node_home, recursive=True)
