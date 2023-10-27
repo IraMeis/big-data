@@ -16,13 +16,13 @@ class Philosopher(threading.Thread):
         self.seats = seats
         self.mutex = mutex
         self.iter_max = iters
-        self.cur_iter = None
 
+        self.cur_iter = None
         self.zk = KazooClient(hosts=address)
-        self.zk.start()
         self.path = f"{root}/{id}"
 
     def run(self):
+        self.zk.start()
         for i in range(self.iter_max):
             self.cur_iter = i
             self.eat()
