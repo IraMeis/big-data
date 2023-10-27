@@ -1,0 +1,6 @@
+[submodule "lr-zookeeper"]
+	path = lr-zookeeper
+	url = https://github.com/IraMeis/lr-zookeeper
+[submodule "flink-training-exercises"]
+	path = flink-training-exercises
+	url = https://github.com/IraMeis/flink-training-exercises
